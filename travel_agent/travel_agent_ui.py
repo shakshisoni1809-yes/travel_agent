@@ -147,7 +147,7 @@ st.markdown("### 💡 Try these:")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    if st.button("🌤️ Weather in Chennai"):
+    if st.button("🌤️ Weather in New York"):
         st.session_state.prefill = "What is the current weather in New York?"
 with col2:
     if st.button("🗺️ Plan trip to Norway for 10 days"):
