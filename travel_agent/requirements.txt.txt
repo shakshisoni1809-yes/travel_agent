@@ -1,0 +1,10 @@
+streamlit
+langchain
+langchain-core
+langchain-groq
+langchain-community
+langgraph
+requests
+duckduckgo-search
+groq
+ddgs
