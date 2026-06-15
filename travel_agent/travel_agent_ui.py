@@ -1,4 +1,3 @@
-
 import streamlit as st
 import json
 import requests
@@ -14,10 +13,49 @@ from langchain_core.messages import (
 from langgraph.prebuilt import create_react_agent
 from langchain_community.tools import DuckDuckGoSearchRun
 
-st.set_page_config(page_title="AI Travel Agent", page_icon="✈️")
+st.set_page_config(page_title="AI Travel Agent", page_icon="✈️", layout="wide")
 
-st.title("✈️ AI Travel Agent")
-st.write("Ask me anything about flights, trains, hotels or weather!")
+st.markdown("""
+<style>
+    .stApp {
+        background-color: #0f172a;
+        color: white;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #1e293b;
+    }
+    .quick-btn {
+        background-color: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 10px;
+        padding: 12px;
+        color: white;
+        text-align: center;
+        font-size: 14px;
+    }
+    .stChatMessage {
+        background-color: #1e293b;
+        border-radius: 10px;
+        padding: 10px;
+    }
+    h1 {
+        color: #38bdf8;
+    }
+    .stButton > button {
+        background-color: #1e40af;
+        color: white;
+        border-radius: 10px;
+        border: none;
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+    }
+    .stButton > button:hover {
+        background-color: #2563eb;
+        color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 API_KEY = os.environ.get("GROQ_API_KEY", "")
 MEMORY_FILE = "travel_memory.json"
@@ -48,7 +86,7 @@ def weather(city: str):
         r = requests.get(f"https://wttr.in/{city}?format=j1", timeout=5)
         if r.status_code == 200:
             c = r.json()["current_condition"][0]
-            return f"Weather in {city}: {c['temp_C']}°C, {c['weatherDesc'][0]['value']}"
+            return f"Weather in {city}: {c['temp_C']}C, {c['weatherDesc'][0]['value']}"
         return "City not found"
     except Exception as e:
         return f"Weather not available: {str(e)}"
@@ -96,10 +134,51 @@ if "chat_history" not in st.session_state:
 if "display_messages" not in st.session_state:
     st.session_state.display_messages = []
 
-if st.button("🗑️ Clear Chat"):
-    st.session_state.chat_history = [SystemMessage(content=SYSTEM_MESSAGE)]
-    st.session_state.display_messages = []
-    st.rerun()
+if "prefill" not in st.session_state:
+    st.session_state.prefill = ""
+
+with st.sidebar:
+    st.markdown("## ✈️ Travel Agent")
+    st.markdown("---")
+    st.markdown("**What I can help with:**")
+    st.markdown("🌤️ Live weather")
+    st.markdown("🚆 Train prices")
+    st.markdown("✈️ Flight prices")
+    st.markdown("🏨 Hotel search")
+    st.markdown("🗺️ Trip itinerary")
+    st.markdown("---")
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.chat_history = [SystemMessage(content=SYSTEM_MESSAGE)]
+        st.session_state.display_messages = []
+        st.session_state.prefill = ""
+        st.rerun()
+    st.markdown("---")
+    st.caption("Built with LangGraph + Groq + Streamlit")
+
+st.markdown("# ✈️ AI Travel Agent")
+st.markdown("Your smart travel planning assistant — flights, trains, hotels and more.")
+st.markdown("---")
+
+st.markdown("### 💡 Try these quick questions:")
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    if st.button("🌤️ Weather in Chennai"):
+        st.session_state.prefill = "What is the current weather in Chennai?"
+
+with col2:
+    if st.button("🗺️ Plan trip to Norway\nfor 10 days"):
+        st.session_state.prefill = "Plan a 10 day trip to Norway with full itinerary"
+
+with col3:
+    if st.button("🚆 Train price\nChennai to Delhi"):
+        st.session_state.prefill = "What is the current train price from Chennai to Delhi?"
+
+with col4:
+    if st.button("✈️ Flight price\nMumbai to Bangkok"):
+        st.session_state.prefill = "What is the current flight price from Mumbai to Bangkok?"
+
+st.markdown("---")
 
 for msg in st.session_state.display_messages:
     if msg["role"] == "user":
@@ -109,12 +188,16 @@ for msg in st.session_state.display_messages:
 
 user_input = st.chat_input("Ask me about your trip...")
 
+if st.session_state.prefill != "":
+    user_input = st.session_state.prefill
+    st.session_state.prefill = ""
+
 if user_input:
     agent_executor = get_agent()
     st.session_state.display_messages.append({"role": "user", "content": user_input})
     st.session_state.chat_history.append(HumanMessage(content=user_input))
     trimmed = trim_history(st.session_state.chat_history, max_messages=6)
-    with st.spinner("Searching..."):
+    with st.spinner("Searching for you..."):
         try:
             response = agent_executor.invoke({"messages": trimmed})
             st.session_state.chat_history = response["messages"]
