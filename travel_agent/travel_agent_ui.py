@@ -35,7 +35,7 @@ st.markdown("""
 
 #API KEYS
 
-API_KEY = st.secrets["GROQ_API_KEY"]
+API_KEY = st.secrets.get("GROQ_API_KEY", "")
 MEMORY_FILE = "travel_memory.json"
 
 # MEMORY
