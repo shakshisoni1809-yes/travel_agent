@@ -167,7 +167,7 @@ travel-agent/
 │   │                             # memory, itinerary builder & Streamlit UI
 │   └── requirements.txt          # All Python dependencies
 └── README.md                     # Project documentation
-
+└──travel_memory.json             # president memory 
 ```
 
 
